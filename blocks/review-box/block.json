@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "scorebox/review-box",
+	"version": "1.0.0",
+	"title": "Review Box",
+	"category": "widgets",
+	"icon": "star-filled",
+	"description": "A review box with star rating, pros/cons, and structured data.",
+	"keywords": [ "review", "rating", "stars", "pros", "cons", "scorebox" ],
+	"textdomain": "scorebox",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"align": [ "wide", "full" ]
+	},
+	"usesContext": [ "postId", "postType" ],
+	"editorScript": "file:./editor.js",
+	"editorStyle": "file:./editor.css",
+	"style": "file:../../assets/css/review-box.css"
+}

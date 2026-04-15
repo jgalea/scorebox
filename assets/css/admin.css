@@ -1,0 +1,454 @@
+/**
+ * Admin styles for ScoreBox dashboard and settings pages.
+ *
+ * @package ScoreBox
+ */
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.scorebox-admin {
+	max-width: 1200px;
+}
+
+.scorebox-admin__title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 23px;
+	font-weight: 400;
+	margin: 16px 0;
+	padding: 0;
+}
+
+.scorebox-admin__title .dashicons {
+	color: #1e73be;
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+}
+
+/* ==========================================================================
+   Badges
+   ========================================================================== */
+
+.scorebox-badge {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	vertical-align: middle;
+}
+
+.scorebox-badge--pro {
+	background: #1e73be;
+	color: #fff;
+}
+
+.scorebox-badge--free {
+	background: #f0f0f0;
+	color: #666;
+}
+
+.scorebox-badge--count {
+	background: #d63638;
+	color: #fff;
+	border-radius: 10px;
+	padding: 1px 7px;
+	font-size: 10px;
+	margin-left: 4px;
+}
+
+/* ==========================================================================
+   Stats cards
+   ========================================================================== */
+
+.scorebox-stats {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 16px;
+	margin-bottom: 24px;
+}
+
+.scorebox-stat-card {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	padding: 18px 20px;
+}
+
+.scorebox-stat-card__icon {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+	color: #1e73be;
+	flex-shrink: 0;
+}
+
+.scorebox-stat-card__content {
+	display: flex;
+	flex-direction: column;
+}
+
+.scorebox-stat-card__value {
+	font-size: 22px;
+	font-weight: 700;
+	color: #1d2327;
+	line-height: 1.2;
+}
+
+.scorebox-stat-card__value small {
+	font-size: 14px;
+	font-weight: 400;
+	color: #888;
+}
+
+.scorebox-stat-card__label {
+	font-size: 12px;
+	color: #888;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	margin-top: 2px;
+}
+
+/* ==========================================================================
+   Dashboard grid
+   ========================================================================== */
+
+.scorebox-dashboard__grid {
+	display: grid;
+	grid-template-columns: 1fr 360px;
+	gap: 20px;
+}
+
+@media (max-width: 1024px) {
+	.scorebox-dashboard__grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* ==========================================================================
+   Panels
+   ========================================================================== */
+
+.scorebox-panel {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	padding: 20px 24px;
+	margin-bottom: 20px;
+}
+
+.scorebox-panel__title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+	margin: 0 0 16px;
+	padding: 0 0 12px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.scorebox-panel__subtitle {
+	font-size: 13px;
+	font-weight: 600;
+	color: #50575e;
+	margin: 20px 0 10px;
+}
+
+.scorebox-panel__empty {
+	color: #888;
+	font-style: italic;
+}
+
+.scorebox-panel__title-meta {
+	font-size: 12px;
+	font-weight: 400;
+	color: #646970;
+	margin-left: 8px;
+}
+
+.scorebox-panel__footer {
+	margin: 12px 0 0;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f0;
+	font-size: 13px;
+}
+
+.scorebox-panel__footer-sep {
+	color: #c3c4c7;
+	margin: 0 4px;
+}
+
+.scorebox-panel .form-table th {
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+.scorebox-panel .form-table td {
+	padding-top: 12px;
+	padding-bottom: 12px;
+}
+
+/* ==========================================================================
+   Tabs
+   ========================================================================== */
+
+.scorebox-tabs {
+	display: flex;
+	gap: 0;
+	margin-bottom: 24px;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.scorebox-tab {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 16px;
+	text-decoration: none;
+	color: #50575e;
+	font-size: 13px;
+	font-weight: 500;
+	border: 1px solid transparent;
+	border-bottom: none;
+	border-radius: 4px 4px 0 0;
+	margin-bottom: -1px;
+	transition: color 0.15s;
+}
+
+.scorebox-tab:hover {
+	color: #1d2327;
+}
+
+.scorebox-tab--active {
+	color: #1d2327;
+	background: #fff;
+	border-color: #c3c4c7;
+	font-weight: 600;
+}
+
+.scorebox-tab .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+}
+
+/* ==========================================================================
+   Table
+   ========================================================================== */
+
+.scorebox-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.scorebox-table th {
+	text-align: left;
+	font-size: 12px;
+	font-weight: 600;
+	color: #888;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.scorebox-table td {
+	padding: 10px 0;
+	border-bottom: 1px solid #f7f7f7;
+	font-size: 13px;
+	color: #333;
+}
+
+.scorebox-table tr:last-child td {
+	border-bottom: none;
+}
+
+.scorebox-table a {
+	text-decoration: none;
+	color: #2271b1;
+}
+
+.scorebox-table a:hover {
+	color: #135e96;
+}
+
+/* ==========================================================================
+   Status indicators
+   ========================================================================== */
+
+.scorebox-status {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.scorebox-status--publish {
+	background: #e6f4ea;
+	color: #1e7e34;
+}
+
+.scorebox-status--draft {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.scorebox-status--pending {
+	background: #fff3cd;
+	color: #856404;
+}
+
+.scorebox-status--private {
+	background: #f0f0f0;
+	color: #666;
+}
+
+/* ==========================================================================
+   Quick links
+   ========================================================================== */
+
+.scorebox-quick-links {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.scorebox-quick-link {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	text-decoration: none;
+	color: #2271b1;
+	border-radius: 4px;
+	font-size: 13px;
+	transition: background 0.15s;
+}
+
+.scorebox-quick-link:hover {
+	background: #f6f7f7;
+	color: #135e96;
+}
+
+.scorebox-quick-link .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	color: #888;
+}
+
+/* ==========================================================================
+   Usage hints
+   ========================================================================== */
+
+.scorebox-usage-hints {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.scorebox-hint {
+	padding: 10px 12px;
+	background: #f9f9f9;
+	border-radius: 4px;
+	font-size: 13px;
+}
+
+.scorebox-hint strong {
+	display: block;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	color: #888;
+	margin-bottom: 4px;
+}
+
+.scorebox-hint p {
+	margin: 0;
+	color: #333;
+}
+
+.scorebox-hint code {
+	background: #e8e8e8;
+	padding: 2px 5px;
+	border-radius: 2px;
+	font-size: 12px;
+}
+
+/* ==========================================================================
+   License
+   ========================================================================== */
+
+.scorebox-license-active {
+	color: #1e7e34;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.scorebox-license-active .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.scorebox-license-free {
+	color: #666;
+}
+
+/* ==========================================================================
+   Pro features grid
+   ========================================================================== */
+
+.scorebox-panel--pro-features {
+	border-color: #d0d5dd;
+}
+
+.scorebox-pro-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+}
+
+@media (max-width: 600px) {
+	.scorebox-pro-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.scorebox-pro-feature {
+	padding: 16px;
+	background: #f9f9f9;
+	border-radius: 4px;
+}
+
+.scorebox-pro-feature .dashicons {
+	color: #1e73be;
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+	margin-bottom: 8px;
+}
+
+.scorebox-pro-feature strong {
+	display: block;
+	font-size: 13px;
+	margin-bottom: 4px;
+}
+
+.scorebox-pro-feature p {
+	margin: 0;
+	font-size: 12px;
+	color: #666;
+	line-height: 1.5;
+}
