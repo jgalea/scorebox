@@ -168,12 +168,19 @@ function scorebox_build_schema( $post_id, $review ) {
 	$rating_type     = ! empty( $review['rating_type'] ) ? $review['rating_type'] : 'star';
 	$schema_rating   = scorebox_normalize_to_star_scale( $review['rating'], $rating_type );
 
+	$review_name = get_the_title( $post_id );
+
 	$schema = array(
 		'@context'        => 'https://schema.org',
 		'@type'           => $schema_type,
 		'name'            => $product_name,
 		'review'          => array(
 			'@type'        => 'Review',
+			'name'         => $review_name,
+			'itemReviewed' => array(
+				'@type' => $schema_type,
+				'name'  => $product_name,
+			),
 			'author'       => array(
 				'@type' => 'Person',
 				'name'  => $author_name,

@@ -71,6 +71,7 @@ Set a global default position in ScoreBox > Settings (before content, after cont
 * Migration page rebuilt: shows every supported source up front with clear "Data detected" / "Nothing to migrate" status and a running count.
 * JSON-LD now emits aggregateRating alongside review for better compatibility with Google rich results.
 * Offers are only emitted when a price is actually set — no more placeholder price=0 offers that could hurt rich result eligibility.
+* Nested Review object now includes name and itemReviewed fields — fixes "Missing field name" errors reported by Google Search Console for Review and Product snippets.
 
 = 1.1.0 =
 * Appearance preview now updates live when style or colors change.
