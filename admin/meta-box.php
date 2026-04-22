@@ -109,6 +109,14 @@ function scorebox_save_meta_box( $post_id ) {
 		'author_name'  => isset( $_POST['scorebox_review_author_name'] ) ? sanitize_text_field( wp_unslash( $_POST['scorebox_review_author_name'] ) ) : '',
 	);
 
+	// Per-type schema fields (Book author, Recipe ingredients, etc.). Deep
+	// sanitization happens in scorebox_sanitize_review() against the
+	// scorebox_get_type_fields() registry — here we just capture the raw array.
+	$data['type_fields'] = array();
+	if ( isset( $_POST['scorebox_review_type_fields'] ) && is_array( $_POST['scorebox_review_type_fields'] ) ) {
+		$data['type_fields'] = wp_unslash( $_POST['scorebox_review_type_fields'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized downstream.
+	}
+
 	// Parse pros from repeater input array.
 	$data['pros']    = array();
 	$raw_pros        = isset( $_POST['scorebox_review_pros'] ) && is_array( $_POST['scorebox_review_pros'] )

@@ -4,6 +4,22 @@ defined( 'ABSPATH' ) || exit;
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- File is included inside a class method; variables are function-scoped, not global.
 
 $sources = scorebox_get_migration_sources();
+
+// Detect posts up-front so each row shows real status.
+$detected = array();
+foreach ( $sources as $source_key => $source_config ) {
+	$posts = is_callable( $source_config['detect'] ) ? call_user_func( $source_config['detect'] ) : array();
+	if ( ! is_array( $posts ) ) {
+		$posts = array();
+	}
+	$detected[ $source_key ] = array(
+		'config' => $source_config,
+		'posts'  => $posts,
+		'total'  => count( $posts ),
+	);
+}
+
+$total_migratable = array_sum( wp_list_pluck( $detected, 'total' ) );
 ?>
 <div class="wrap scorebox-admin">
 	<h1 class="scorebox-admin__title">
@@ -15,37 +31,73 @@ $sources = scorebox_get_migration_sources();
 		<p id="scorebox-migration-message"></p>
 	</div>
 
-	<?php foreach ( $sources as $source_key => $source_config ) : ?>
+	<div class="scorebox-panel">
+		<h2 class="scorebox-panel__title"><?php esc_html_e( 'Supported Sources', 'scorebox' ); ?></h2>
+		<p class="description">
+			<?php esc_html_e( 'ScoreBox can import review data from the plugins listed below. Your site is scanned automatically; sources with matching data let you review and migrate each post before any changes are saved.', 'scorebox' ); ?>
+		</p>
+
+		<table class="wp-list-table widefat striped" style="margin-top: 12px;">
+			<thead>
+				<tr>
+					<th><?php esc_html_e( 'Source Plugin', 'scorebox' ); ?></th>
+					<th style="width: 180px;"><?php esc_html_e( 'Status', 'scorebox' ); ?></th>
+					<th style="width: 120px;"><?php esc_html_e( 'Posts Found', 'scorebox' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $detected as $source_key => $info ) : ?>
+					<tr>
+						<td><strong><?php echo esc_html( $info['config']['label'] ); ?></strong></td>
+						<td>
+							<?php if ( $info['total'] > 0 ) : ?>
+								<span class="scorebox-migrate-badge scorebox-migrate-badge--ready">
+									<span class="dashicons dashicons-yes-alt"></span>
+									<?php esc_html_e( 'Data detected', 'scorebox' ); ?>
+								</span>
+							<?php else : ?>
+								<span class="scorebox-migrate-badge scorebox-migrate-badge--none">
+									<span class="dashicons dashicons-minus"></span>
+									<?php esc_html_e( 'Nothing to migrate', 'scorebox' ); ?>
+								</span>
+							<?php endif; ?>
+						</td>
+						<td><?php echo esc_html( $info['total'] ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+
+		<?php if ( 0 === $total_migratable ) : ?>
+			<p class="description" style="margin-top: 12px;">
+				<?php esc_html_e( 'No legacy review data was detected on this site. Once you install content from one of the supported plugins above, migration options will appear here automatically.', 'scorebox' ); ?>
+			</p>
+		<?php endif; ?>
+	</div>
+
+	<?php foreach ( $detected as $source_key => $info ) : ?>
 		<?php
-		$posts = call_user_func( $source_config['detect'] );
-		$total = count( $posts );
+		if ( 0 === $info['total'] ) {
+			continue;
+		}
+		$source_config = $info['config'];
+		$posts         = $info['posts'];
+		$total         = $info['total'];
 		?>
 
-		<h2>
-			<?php
-			/* translators: %s: migration source label (e.g. WP Review Pro) */
-			echo esc_html( sprintf( __( 'Migrate from %s', 'scorebox' ), $source_config['label'] ) );
-			?>
-		</h2>
-
-		<?php if ( 0 === $total ) : ?>
-			<div class="notice notice-info">
-				<p>
-					<?php
-					/* translators: %s: migration source label */
-					echo esc_html( sprintf( __( 'No posts with %s data found.', 'scorebox' ), $source_config['label'] ) );
-					?>
-				</p>
-			</div>
-		<?php else : ?>
-			<div class="notice notice-warning">
-				<p>
-					<?php
-					/* translators: 1: number of posts, 2: migration source label */
-					echo esc_html( sprintf( __( 'Found %1$d posts with %2$s data.', 'scorebox' ), $total, $source_config['label'] ) );
-					?>
-				</p>
-			</div>
+		<div class="scorebox-panel">
+			<h2 class="scorebox-panel__title">
+				<?php
+				/* translators: %s: migration source label (e.g. WP Review Pro) */
+				echo esc_html( sprintf( __( 'Migrate from %s', 'scorebox' ), $source_config['label'] ) );
+				?>
+			</h2>
+			<p>
+				<?php
+				/* translators: %1$d: number of posts, %2$s: source label */
+				echo esc_html( sprintf( _n( 'Found %1$d post with %2$s data.', 'Found %1$d posts with %2$s data.', $total, 'scorebox' ), $total, $source_config['label'] ) );
+				?>
+			</p>
 
 			<p>
 				<button type="button" class="button button-primary scorebox-migrate-all-btn" data-source="<?php echo esc_attr( $source_key ); ?>">
@@ -103,8 +155,6 @@ $sources = scorebox_get_migration_sources();
 					<?php endforeach; ?>
 				</tbody>
 			</table>
-		<?php endif; ?>
-
-		<hr>
+		</div>
 	<?php endforeach; ?>
 </div>

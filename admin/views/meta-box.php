@@ -184,12 +184,80 @@ $use_criteria = ! empty( $data['use_criteria'] );
 			</th>
 			<td>
 				<select id="scorebox_review_schema_type" name="scorebox_review_schema_type">
-					<option value="Product" <?php selected( $data['schema_type'], 'Product' ); ?>><?php esc_html_e( 'Product', 'scorebox' ); ?></option>
-					<option value="SoftwareApplication" <?php selected( $data['schema_type'], 'SoftwareApplication' ); ?>><?php esc_html_e( 'SoftwareApplication', 'scorebox' ); ?></option>
-					<option value="Thing" <?php selected( $data['schema_type'], 'Thing' ); ?>><?php esc_html_e( 'Thing', 'scorebox' ); ?></option>
+					<?php foreach ( scorebox_get_schema_types() as $type_value => $type_label ) : ?>
+						<option value="<?php echo esc_attr( $type_value ); ?>" <?php selected( $data['schema_type'], $type_value ); ?>><?php echo esc_html( $type_label ); ?></option>
+					<?php endforeach; ?>
 				</select>
 			</td>
 		</tr>
+
+		<?php
+		$type_registry = scorebox_get_type_fields();
+		$saved_tf      = isset( $data['type_fields'] ) && is_array( $data['type_fields'] ) ? $data['type_fields'] : array();
+		if ( ! empty( $type_registry ) ) :
+		?>
+		<tr id="scorebox-type-fields-row">
+			<th scope="row"><?php esc_html_e( 'Type-specific Fields', 'scorebox' ); ?></th>
+			<td>
+				<?php foreach ( $type_registry as $type_key => $type_fields ) : ?>
+					<div class="scorebox-type-fields" data-type="<?php echo esc_attr( $type_key ); ?>"
+						style="<?php echo $data['schema_type'] === $type_key ? '' : 'display:none;'; ?>">
+						<?php foreach ( $type_fields as $field_key => $field_def ) :
+							$field_type = isset( $field_def['type'] ) ? $field_def['type'] : 'text';
+							$value      = isset( $saved_tf[ $type_key ][ $field_key ] ) ? $saved_tf[ $type_key ][ $field_key ] : '';
+							$input_id   = 'scorebox_tf_' . sanitize_key( $type_key ) . '_' . sanitize_key( $field_key );
+							$input_name = 'scorebox_review_type_fields[' . $type_key . '][' . $field_key . ']';
+						?>
+							<p>
+								<label for="<?php echo esc_attr( $input_id ); ?>" style="display:block; font-weight:600;">
+									<?php echo esc_html( $field_def['label'] ); ?>
+								</label>
+								<?php if ( 'textarea' === $field_type ) : ?>
+									<textarea id="<?php echo esc_attr( $input_id ); ?>"
+										name="<?php echo esc_attr( $input_name ); ?>"
+										class="large-text" rows="3"><?php echo esc_textarea( $value ); ?></textarea>
+								<?php elseif ( 'number' === $field_type ) : ?>
+									<input type="number" step="any" id="<?php echo esc_attr( $input_id ); ?>"
+										name="<?php echo esc_attr( $input_name ); ?>"
+										value="<?php echo esc_attr( $value ); ?>" class="small-text">
+								<?php elseif ( 'date' === $field_type ) : ?>
+									<input type="date" id="<?php echo esc_attr( $input_id ); ?>"
+										name="<?php echo esc_attr( $input_name ); ?>"
+										value="<?php echo esc_attr( $value ); ?>">
+								<?php else : ?>
+									<input type="text" id="<?php echo esc_attr( $input_id ); ?>"
+										name="<?php echo esc_attr( $input_name ); ?>"
+										value="<?php echo esc_attr( $value ); ?>" class="regular-text">
+								<?php endif; ?>
+							</p>
+						<?php endforeach; ?>
+					</div>
+				<?php endforeach; ?>
+				<p class="description scorebox-type-fields-empty"
+					style="<?php echo isset( $type_registry[ $data['schema_type'] ] ) ? 'display:none;' : ''; ?>">
+					<?php esc_html_e( 'This schema type has no extra fields. Base review data (rating, summary, pros/cons) will still be included.', 'scorebox' ); ?>
+				</p>
+			</td>
+		</tr>
+		<script>
+		( function () {
+			var select = document.getElementById( 'scorebox_review_schema_type' );
+			if ( ! select ) return;
+			var groups = document.querySelectorAll( '.scorebox-type-fields' );
+			var empty  = document.querySelector( '.scorebox-type-fields-empty' );
+			select.addEventListener( 'change', function ( e ) {
+				var val   = e.target.value;
+				var found = false;
+				groups.forEach( function ( g ) {
+					var match      = g.getAttribute( 'data-type' ) === val;
+					g.style.display = match ? '' : 'none';
+					if ( match ) { found = true; }
+				} );
+				if ( empty ) { empty.style.display = found ? 'none' : ''; }
+			} );
+		} )();
+		</script>
+		<?php endif; ?>
 
 		<tr>
 			<th scope="row">

@@ -292,27 +292,22 @@ function scorebox_parse_list_html( $html ) {
  * @return string ScoreBox schema type.
  */
 function scorebox_map_schema_type( $schema ) {
+	// If we natively support this type, pass it through unchanged.
+	$supported = array_keys( scorebox_get_schema_types() );
+	if ( in_array( $schema, $supported, true ) ) {
+		return $schema;
+	}
+
+	// Remap legacy / unsupported types to the closest supported one.
 	$map = array(
-		'Product'             => 'Product',
-		'SoftwareApplication' => 'SoftwareApplication',
-		'Book'                => 'Thing',
-		'Movie'               => 'Thing',
-		'MusicRecording'      => 'Thing',
-		'Game'                => 'SoftwareApplication',
-		'Restaurant'          => 'Thing',
-		'TVSeries'            => 'Thing',
-		'WebSite'             => 'Thing',
-		'Place'               => 'Thing',
-		'Organization'        => 'Thing',
-		'Course'              => 'Thing',
-		'CreativeWork'        => 'Thing',
-		'Event'               => 'Thing',
-		'HowTo'              => 'Thing',
-		'LocalBusiness'       => 'Thing',
-		'MediaObject'         => 'Thing',
-		'Recipe'              => 'Thing',
-		'Store'               => 'Thing',
-		'Thing'               => 'Thing',
+		'Game'           => 'VideoGame',
+		'MusicRecording' => 'MusicAlbum',
+		'WebSite'        => 'CreativeWork',
+		'Place'          => 'LocalBusiness',
+		'Organization'   => 'LocalBusiness',
+		'HowTo'          => 'CreativeWork',
+		'MediaObject'    => 'CreativeWork',
+		'Store'          => 'LocalBusiness',
 	);
 
 	if ( isset( $map[ $schema ] ) ) {

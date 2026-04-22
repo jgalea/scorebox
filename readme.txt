@@ -4,7 +4,7 @@ Tags: review, rating, schema, structured data, stars
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,10 +66,26 @@ Set a global default position in ScoreBox > Settings (before content, after cont
 
 == Changelog ==
 
+= 1.2.0 =
+* Block editor sidebar now shows type-specific schema fields (Book author, Recipe ingredients, etc.) matching the classic meta box.
+* Migration page rebuilt: shows every supported source up front with clear "Data detected" / "Nothing to migrate" status and a running count.
+* JSON-LD now emits aggregateRating alongside review for better compatibility with Google rich results.
+* Offers are only emitted when a price is actually set — no more placeholder price=0 offers that could hurt rich result eligibility.
+
+= 1.1.0 =
+* Appearance preview now updates live when style or colors change.
+* Schema types expanded from 3 to 14 (Book, Movie, TV Series, Video Game, Music Album, Recipe, Course, Event, Local Business, Restaurant, Creative Work, plus Product, Software Application, Thing).
+* Per-type schema fields: optional Book author/ISBN, Recipe ingredients/prep time, Movie director, Event start date, Local Business address/telephone, etc.
+* Migration page now hides empty sources and shows a single empty state when nothing is migratable.
+* Dashboard cards reworked: "Ready to Migrate" and "Latest Review" replace the two setting-echo cards.
+
 = 1.0.0 =
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Live appearance preview, 11 new schema types with optional per-type fields, cleaner migration and dashboard UI.
 
 = 1.0.0 =
 Initial release.

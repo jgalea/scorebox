@@ -3,7 +3,7 @@
  * Plugin Name: ScoreBox
  * Plugin URI:  https://jeangalea.com/scorebox/
  * Description: Lightweight review boxes with structured data (JSON-LD) for WordPress. Star ratings, percentage, points, pros/cons, and schema markup that Google understands.
- * Version:     1.0.0
+ * Version:     1.2.0
  * Author:      Jean Galea
  * Author URI:  https://jeangalea.com/
  * License:     GPL-2.0-or-later
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SCOREBOX_VERSION', '1.0.0' );
+define( 'SCOREBOX_VERSION', '1.2.0' );
 define( 'SCOREBOX_FILE', __FILE__ );
 define( 'SCOREBOX_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SCOREBOX_URL', plugin_dir_url( __FILE__ ) );

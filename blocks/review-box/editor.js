@@ -31,7 +31,7 @@
 		rating: 0, rating_type: 'star', style: '', position: '', heading: '', summary: '', pros: [], cons: [],
 		schema_type: 'Product', product_name: '', price: '', currency: 'USD',
 		cta_text: '', cta_url: '', author_name: '',
-		use_criteria: false, criteria: []
+		use_criteria: false, criteria: [], type_fields: {}
 	};
 
 	var starIdCounter = 0;
@@ -392,18 +392,57 @@
 		);
 
 		// Schema settings panel.
+		var schemaTypeOptions = CONFIG.schemaTypes && CONFIG.schemaTypes.length
+			? CONFIG.schemaTypes
+			: [
+				{ label: 'Product', value: 'Product' },
+				{ label: 'Software Application', value: 'SoftwareApplication' },
+				{ label: 'Thing', value: 'Thing' }
+			];
+
+		// Build type-specific field controls for the currently selected schema type.
+		function updateTypeField( typeKey, fieldKey, value ) {
+			var tf = Object.assign( {}, review.type_fields || {} );
+			var typeObj = Object.assign( {}, tf[ typeKey ] || {} );
+			if ( value === '' || value === null || value === undefined ) {
+				delete typeObj[ fieldKey ];
+			} else {
+				typeObj[ fieldKey ] = value;
+			}
+			if ( Object.keys( typeObj ).length === 0 ) {
+				delete tf[ typeKey ];
+			} else {
+				tf[ typeKey ] = typeObj;
+			}
+			updateReview( { type_fields: tf } );
+		}
+
+		var typeFieldDefs = ( CONFIG.typeFields && CONFIG.typeFields[ review.schema_type ] ) || [];
+		var typeFieldControls = typeFieldDefs.map( function ( f ) {
+			var currentType = review.type_fields && review.type_fields[ review.schema_type ];
+			var val = currentType && currentType[ f.key ] !== undefined ? currentType[ f.key ] : '';
+			var onChange = function ( v ) { updateTypeField( review.schema_type, f.key, v ); };
+			if ( f.type === 'textarea' ) {
+				return el( TextareaControl, { key: 'tf-' + f.key, label: f.label, value: val, onChange: onChange } );
+			}
+			return el( TextControl, {
+				key:      'tf-' + f.key,
+				label:    f.label,
+				type:     ( f.type === 'number' || f.type === 'date' ) ? f.type : 'text',
+				value:    val,
+				onChange: onChange
+			} );
+		} );
+
 		inspectorPanels.push(
 			el( PanelBody, { key: 'schema', title: __( 'Schema Settings', 'scorebox' ), initialOpen: false },
 				el( SelectControl, {
 					label: __( 'Schema Type', 'scorebox' ),
 					value: review.schema_type,
-					options: [
-						{ label: 'Product', value: 'Product' },
-						{ label: 'SoftwareApplication', value: 'SoftwareApplication' },
-						{ label: 'Thing', value: 'Thing' }
-					],
+					options: schemaTypeOptions,
 					onChange: function( val ) { updateReview( { schema_type: val } ); }
 				} ),
+				typeFieldControls,
 				el( TextControl, {
 					label: __( 'Product / Item Name', 'scorebox' ),
 					value: review.product_name,

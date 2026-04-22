@@ -12,6 +12,99 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Get all supported JSON-LD schema types.
+ *
+ * Returns an associative array of [ value => human label ]. Types without
+ * dedicated field handlers in scorebox_build_schema() fall through to a
+ * generic Review structure (name, review, url, image) which is still valid
+ * JSON-LD for Google.
+ *
+ * @return array<string, string>
+ */
+function scorebox_get_schema_types() {
+	$types = array(
+		'Product'             => __( 'Product', 'scorebox' ),
+		'SoftwareApplication' => __( 'Software Application', 'scorebox' ),
+		'Book'                => __( 'Book', 'scorebox' ),
+		'Movie'               => __( 'Movie', 'scorebox' ),
+		'TVSeries'            => __( 'TV Series', 'scorebox' ),
+		'VideoGame'           => __( 'Video Game', 'scorebox' ),
+		'MusicAlbum'          => __( 'Music Album', 'scorebox' ),
+		'Recipe'              => __( 'Recipe', 'scorebox' ),
+		'Course'              => __( 'Course', 'scorebox' ),
+		'Event'               => __( 'Event', 'scorebox' ),
+		'LocalBusiness'       => __( 'Local Business', 'scorebox' ),
+		'Restaurant'          => __( 'Restaurant', 'scorebox' ),
+		'CreativeWork'        => __( 'Creative Work', 'scorebox' ),
+		'Thing'               => __( 'Thing (generic)', 'scorebox' ),
+	);
+
+	return apply_filters( 'scorebox_schema_types', $types );
+}
+
+/**
+ * Get optional per-type fields that users can fill in to enrich the JSON-LD
+ * output for a given schema type.
+ *
+ * Each type maps to an array of [ field_key => [ label, type ] ] where type
+ * is one of: text, textarea, date, number. Fields that are omitted or empty
+ * are simply not emitted in the schema.
+ *
+ * @return array<string, array<string, array{label: string, type: string}>>
+ */
+function scorebox_get_type_fields() {
+	$fields = array(
+		'Book'          => array(
+			'author' => array( 'label' => __( 'Author', 'scorebox' ),           'type' => 'text' ),
+			'isbn'   => array( 'label' => __( 'ISBN', 'scorebox' ),             'type' => 'text' ),
+		),
+		'Movie'         => array(
+			'director' => array( 'label' => __( 'Director', 'scorebox' ),       'type' => 'text' ),
+			'duration' => array( 'label' => __( 'Duration (e.g. PT2H15M)', 'scorebox' ), 'type' => 'text' ),
+		),
+		'TVSeries'      => array(
+			'actor'           => array( 'label' => __( 'Lead Actor', 'scorebox' ),        'type' => 'text' ),
+			'numberOfSeasons' => array( 'label' => __( 'Number of Seasons', 'scorebox' ), 'type' => 'number' ),
+		),
+		'VideoGame'     => array(
+			'gamePlatform' => array( 'label' => __( 'Platform(s)', 'scorebox' ),  'type' => 'text' ),
+		),
+		'MusicAlbum'    => array(
+			'byArtist' => array( 'label' => __( 'Artist', 'scorebox' ),          'type' => 'text' ),
+		),
+		'Recipe'        => array(
+			'recipeIngredient' => array( 'label' => __( 'Ingredients (one per line)', 'scorebox' ), 'type' => 'textarea' ),
+			'prepTime'         => array( 'label' => __( 'Prep Time (e.g. PT30M)', 'scorebox' ),    'type' => 'text' ),
+			'cookTime'         => array( 'label' => __( 'Cook Time (e.g. PT1H)', 'scorebox' ),     'type' => 'text' ),
+			'recipeYield'      => array( 'label' => __( 'Yield (e.g. 4 servings)', 'scorebox' ),   'type' => 'text' ),
+		),
+		'Course'        => array(
+			'provider' => array( 'label' => __( 'Provider', 'scorebox' ),        'type' => 'text' ),
+		),
+		'Event'         => array(
+			'startDate' => array( 'label' => __( 'Start Date', 'scorebox' ),     'type' => 'date' ),
+			'location'  => array( 'label' => __( 'Location', 'scorebox' ),       'type' => 'text' ),
+		),
+		'LocalBusiness' => array(
+			'address'    => array( 'label' => __( 'Address', 'scorebox' ),       'type' => 'textarea' ),
+			'telephone'  => array( 'label' => __( 'Telephone', 'scorebox' ),     'type' => 'text' ),
+			'priceRange' => array( 'label' => __( 'Price Range (e.g. $$)', 'scorebox' ), 'type' => 'text' ),
+		),
+		'Restaurant'    => array(
+			'address'       => array( 'label' => __( 'Address', 'scorebox' ),    'type' => 'textarea' ),
+			'telephone'     => array( 'label' => __( 'Telephone', 'scorebox' ),  'type' => 'text' ),
+			'servesCuisine' => array( 'label' => __( 'Cuisine', 'scorebox' ),    'type' => 'text' ),
+			'priceRange'    => array( 'label' => __( 'Price Range (e.g. $$)', 'scorebox' ), 'type' => 'text' ),
+		),
+		'CreativeWork'  => array(
+			'creator' => array( 'label' => __( 'Creator', 'scorebox' ),          'type' => 'text' ),
+		),
+	);
+
+	return apply_filters( 'scorebox_type_fields', $fields );
+}
+
+/**
  * Output JSON-LD schema on singular posts/pages that have review data.
  */
 function scorebox_output_schema() {
@@ -51,7 +144,7 @@ add_action( 'wp_head', 'scorebox_output_schema', 1 );
  */
 function scorebox_build_schema( $post_id, $review ) {
 	$options     = get_option( 'scorebox_settings', array() );
-	$valid_types = array( 'Product', 'SoftwareApplication', 'Thing' );
+	$valid_types = array_keys( scorebox_get_schema_types() );
 	$schema_type = ! empty( $review['schema_type'] ) && in_array( $review['schema_type'], $valid_types, true )
 		? $review['schema_type']
 		: 'Product';
@@ -76,10 +169,10 @@ function scorebox_build_schema( $post_id, $review ) {
 	$schema_rating   = scorebox_normalize_to_star_scale( $review['rating'], $rating_type );
 
 	$schema = array(
-		'@context' => 'https://schema.org',
-		'@type'    => $schema_type,
-		'name'     => $product_name,
-		'review'   => array(
+		'@context'        => 'https://schema.org',
+		'@type'           => $schema_type,
+		'name'            => $product_name,
+		'review'          => array(
 			'@type'        => 'Review',
 			'author'       => array(
 				'@type' => 'Person',
@@ -91,6 +184,13 @@ function scorebox_build_schema( $post_id, $review ) {
 				'bestRating'  => '5',
 				'worstRating' => '1',
 			),
+		),
+		'aggregateRating' => array(
+			'@type'       => 'AggregateRating',
+			'ratingValue' => (string) $schema_rating,
+			'reviewCount' => '1',
+			'bestRating'  => '5',
+			'worstRating' => '1',
 		),
 	);
 
@@ -138,11 +238,10 @@ function scorebox_build_schema( $post_id, $review ) {
 		case 'SoftwareApplication':
 			$schema = scorebox_schema_software( $schema, $review );
 			break;
-
-		case 'Thing':
-			// Thing has no additional required fields beyond what we've set.
-			break;
 	}
+
+	// Merge user-provided per-type fields (e.g. Book author, Recipe ingredients).
+	$schema = scorebox_schema_apply_type_fields( $schema, $schema_type, $review );
 
 	/**
 	 * Filter the complete JSON-LD schema array before output.
@@ -157,38 +256,78 @@ function scorebox_build_schema( $post_id, $review ) {
 /**
  * Add Product-specific schema fields.
  *
- * Always includes offers to fix GSC "Missing field offers" error.
- *
  * @param array $schema Schema array.
  * @param array $review Review data.
  * @return array Modified schema.
  */
 function scorebox_schema_product( $schema, $review ) {
-	// Offers is required for Product schema — always include it.
-	$offer = array(
-		'@type' => 'Offer',
-		'url'   => $schema['url'],
-	);
-
 	if ( ! empty( $review['price'] ) ) {
-		$offer['price']         = $review['price'];
-		$offer['priceCurrency'] = ! empty( $review['currency'] ) ? $review['currency'] : 'USD';
-		$offer['availability']  = 'https://schema.org/InStock';
-	} else {
-		// No price specified — use 0 to satisfy GSC requirements.
-		$offer['price']         = '0';
-		$offer['priceCurrency'] = ! empty( $review['currency'] ) ? $review['currency'] : 'USD';
-		$offer['availability']  = 'https://schema.org/InStock';
+		$schema['offers'] = array(
+			'@type'         => 'Offer',
+			'url'           => $schema['url'],
+			'price'         => $review['price'],
+			'priceCurrency' => ! empty( $review['currency'] ) ? $review['currency'] : 'USD',
+			'availability'  => 'https://schema.org/InStock',
+		);
 	}
 
-	$schema['offers'] = $offer;
-
-	// Add brand if we can derive one.
 	if ( ! empty( $review['product_name'] ) ) {
 		$schema['brand'] = array(
 			'@type' => 'Brand',
 			'name'  => $review['product_name'],
 		);
+	}
+
+	return $schema;
+}
+
+/**
+ * Merge user-supplied per-type fields into the schema.
+ *
+ * Reads $review['type_fields'][ $schema_type ] and emits each non-empty field
+ * as a top-level property on the schema object. Multi-line textarea values
+ * (e.g. Recipe ingredients) become arrays, one item per non-empty line.
+ *
+ * @param array  $schema      Current schema array.
+ * @param string $schema_type Schema type slug.
+ * @param array  $review      Review data.
+ * @return array Schema with type fields merged in.
+ */
+function scorebox_schema_apply_type_fields( $schema, $schema_type, $review ) {
+	if ( empty( $review['type_fields'][ $schema_type ] ) || ! is_array( $review['type_fields'][ $schema_type ] ) ) {
+		return $schema;
+	}
+
+	$registry = scorebox_get_type_fields();
+	if ( empty( $registry[ $schema_type ] ) ) {
+		return $schema;
+	}
+
+	foreach ( $review['type_fields'][ $schema_type ] as $field_key => $value ) {
+		if ( ! isset( $registry[ $schema_type ][ $field_key ] ) ) {
+			continue;
+		}
+		if ( '' === $value || null === $value ) {
+			continue;
+		}
+
+		$field_type = isset( $registry[ $schema_type ][ $field_key ]['type'] ) ? $registry[ $schema_type ][ $field_key ]['type'] : 'text';
+
+		if ( 'textarea' === $field_type ) {
+			$lines = array_filter(
+				array_map( 'trim', preg_split( "/\r\n|\r|\n/", (string) $value ) ),
+				function ( $l ) {
+					return '' !== $l;
+				}
+			);
+			if ( ! empty( $lines ) ) {
+				$schema[ $field_key ] = count( $lines ) === 1 ? array_values( $lines )[0] : array_values( $lines );
+			}
+		} elseif ( 'number' === $field_type ) {
+			$schema[ $field_key ] = is_numeric( $value ) ? 0 + $value : $value;
+		} else {
+			$schema[ $field_key ] = $value;
+		}
 	}
 
 	return $schema;
@@ -204,21 +343,14 @@ function scorebox_schema_product( $schema, $review ) {
 function scorebox_schema_software( $schema, $review ) {
 	$schema['applicationCategory'] = 'WebApplication';
 
-	// Offers for software.
-	$offer = array(
-		'@type' => 'Offer',
-		'url'   => $schema['url'],
-	);
-
 	if ( ! empty( $review['price'] ) ) {
-		$offer['price']         = $review['price'];
-		$offer['priceCurrency'] = ! empty( $review['currency'] ) ? $review['currency'] : 'USD';
-	} else {
-		$offer['price']         = '0';
-		$offer['priceCurrency'] = ! empty( $review['currency'] ) ? $review['currency'] : 'USD';
+		$schema['offers'] = array(
+			'@type'         => 'Offer',
+			'url'           => $schema['url'],
+			'price'         => $review['price'],
+			'priceCurrency' => ! empty( $review['currency'] ) ? $review['currency'] : 'USD',
+		);
 	}
-
-	$schema['offers'] = $offer;
 
 	return $schema;
 }

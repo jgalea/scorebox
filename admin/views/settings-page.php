@@ -95,33 +95,7 @@ $active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['ta
 					<p class="description"><?php esc_html_e( 'Preview how the review box will look with current settings. Save to apply changes.', 'scorebox' ); ?></p>
 					<div id="scorebox-settings-preview" style="max-width: 600px; margin-top: 16px;">
 						<?php
-						$preview_review = array(
-							'rating'       => 4.5,
-							'rating_type'  => 'star',
-							'heading'      => __( 'Our Verdict', 'scorebox' ),
-							'summary'      => __( 'An excellent product that delivers on its promises. Great value for the price.', 'scorebox' ),
-							'pros'         => array(
-								__( 'Easy to use', 'scorebox' ),
-								__( 'Great performance', 'scorebox' ),
-								__( 'Good value', 'scorebox' ),
-							),
-							'cons'         => array(
-								__( 'Limited options', 'scorebox' ),
-								__( 'Could be cheaper', 'scorebox' ),
-							),
-							'cta_text'     => __( 'Visit Website', 'scorebox' ),
-							'cta_url'      => '#',
-							'product_name' => __( 'Example Product', 'scorebox' ),
-							'style'        => '',
-							'position'     => '',
-							'schema_type'  => 'Product',
-							'price'        => '',
-							'currency'     => 'USD',
-							'author_name'  => '',
-							'use_criteria' => false,
-							'criteria'     => array(),
-						);
-						echo scorebox_render_box( $preview_review, 0 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						echo scorebox_render_box( scorebox_get_preview_review(), 0 ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 						?>
 					</div>
 				</div>

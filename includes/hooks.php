@@ -66,6 +66,22 @@ function scorebox_get_styles() {
  *
  * @return array<string, array>
  */
+/**
+ * Count posts migratable across every registered source.
+ *
+ * @return int
+ */
+function scorebox_count_all_migratable() {
+	$total = 0;
+	foreach ( scorebox_get_migration_sources() as $source ) {
+		if ( isset( $source['detect'] ) && is_callable( $source['detect'] ) ) {
+			$posts  = call_user_func( $source['detect'] );
+			$total += is_array( $posts ) ? count( $posts ) : 0;
+		}
+	}
+	return $total;
+}
+
 function scorebox_get_migration_sources() {
 	$sources = array(
 		'wp_review_pro' => array(
@@ -115,9 +131,32 @@ function scorebox_get_editor_config() {
 		);
 	}
 
+	$schema_types_config = array();
+	foreach ( scorebox_get_schema_types() as $slug => $label ) {
+		$schema_types_config[] = array(
+			'value' => $slug,
+			'label' => $label,
+		);
+	}
+
+	$type_fields_config = array();
+	foreach ( scorebox_get_type_fields() as $type_key => $fields ) {
+		$list = array();
+		foreach ( $fields as $field_key => $def ) {
+			$list[] = array(
+				'key'   => $field_key,
+				'label' => isset( $def['label'] ) ? $def['label'] : $field_key,
+				'type'  => isset( $def['type'] ) ? $def['type'] : 'text',
+			);
+		}
+		$type_fields_config[ $type_key ] = $list;
+	}
+
 	$config = array(
 		'ratingTypes' => $rating_types_config,
 		'styles'      => $styles_config,
+		'schemaTypes' => $schema_types_config,
+		'typeFields'  => $type_fields_config,
 		'features'    => array(
 			'criteria' => false,
 		),

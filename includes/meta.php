@@ -143,10 +143,42 @@ function scorebox_sanitize_data( $data ) {
 	}
 
 	// Schema type.
-	$valid_types = array( 'Product', 'SoftwareApplication', 'Thing' );
+	$valid_types = array_keys( scorebox_get_schema_types() );
 	$clean['schema_type'] = $defaults['schema_type'];
 	if ( isset( $data['schema_type'] ) && in_array( $data['schema_type'], $valid_types, true ) ) {
 		$clean['schema_type'] = $data['schema_type'];
+	}
+
+	// Type-specific schema fields (e.g. Book author, Recipe ingredients).
+	$clean['type_fields'] = array();
+	if ( isset( $data['type_fields'] ) && is_array( $data['type_fields'] ) ) {
+		$registry = scorebox_get_type_fields();
+		foreach ( $data['type_fields'] as $type_key => $type_values ) {
+			if ( ! is_string( $type_key ) || ! isset( $registry[ $type_key ] ) || ! is_array( $type_values ) ) {
+				continue;
+			}
+			$clean_type = array();
+			foreach ( $registry[ $type_key ] as $field_key => $field_def ) {
+				if ( ! isset( $type_values[ $field_key ] ) ) {
+					continue;
+				}
+				$raw   = $type_values[ $field_key ];
+				$ftype = isset( $field_def['type'] ) ? $field_def['type'] : 'text';
+				if ( 'textarea' === $ftype ) {
+					$val = sanitize_textarea_field( $raw );
+				} elseif ( 'number' === $ftype ) {
+					$val = is_numeric( $raw ) ? (float) $raw : '';
+				} else {
+					$val = sanitize_text_field( $raw );
+				}
+				if ( '' !== $val && null !== $val ) {
+					$clean_type[ $field_key ] = $val;
+				}
+			}
+			if ( ! empty( $clean_type ) ) {
+				$clean['type_fields'][ $type_key ] = $clean_type;
+			}
+		}
 	}
 
 	// Product name (for schema).

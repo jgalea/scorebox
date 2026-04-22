@@ -70,8 +70,23 @@ if ( $total_reviews > 0 ) {
 	}
 }
 
-// Count migratable posts.
-$wp_review_count = count( scorebox_get_migratable_posts() );
+// Count migratable posts across all registered migration sources (WP Review Pro + Pro sources).
+$wp_review_count = scorebox_count_all_migratable();
+
+// Latest review — use the most recently modified reviewed post.
+$latest_review_label = '—';
+$latest_review_title = '';
+if ( ! empty( $recent_ids ) ) {
+	$latest_post = get_post( $recent_ids[0] );
+	if ( $latest_post ) {
+		$latest_gmt = strtotime( $latest_post->post_modified_gmt );
+		if ( $latest_gmt ) {
+			/* translators: %s: human-readable time difference, e.g. "2 days". */
+			$latest_review_label = sprintf( __( '%s ago', 'scorebox' ), human_time_diff( $latest_gmt ) );
+			$latest_review_title = $latest_post->post_title;
+		}
+	}
+}
 ?>
 <div class="wrap scorebox-admin">
 	<h1 class="scorebox-admin__title">
@@ -100,18 +115,26 @@ $wp_review_count = count( scorebox_get_migratable_posts() );
 			</div>
 
 			<div class="scorebox-stat-card">
-				<div class="scorebox-stat-card__icon dashicons dashicons-admin-settings"></div>
+				<div class="scorebox-stat-card__icon dashicons dashicons-migrate"></div>
 				<div class="scorebox-stat-card__content">
-					<span class="scorebox-stat-card__value"><?php echo esc_html( isset( $options['default_position'] ) ? ucfirst( $options['default_position'] ) : 'Manual' ); ?></span>
-					<span class="scorebox-stat-card__label"><?php esc_html_e( 'Default Position', 'scorebox' ); ?></span>
+					<span class="scorebox-stat-card__value"><?php echo esc_html( $wp_review_count ); ?></span>
+					<span class="scorebox-stat-card__label">
+						<?php if ( $wp_review_count > 0 ) : ?>
+							<a href="<?php echo esc_url( admin_url( 'admin.php?page=scorebox-migration' ) ); ?>">
+								<?php esc_html_e( 'Ready to Migrate', 'scorebox' ); ?>
+							</a>
+						<?php else : ?>
+							<?php esc_html_e( 'Ready to Migrate', 'scorebox' ); ?>
+						<?php endif; ?>
+					</span>
 				</div>
 			</div>
 
-			<div class="scorebox-stat-card">
-				<div class="scorebox-stat-card__icon dashicons dashicons-media-code"></div>
+			<div class="scorebox-stat-card"<?php echo $latest_review_title ? ' title="' . esc_attr( $latest_review_title ) . '"' : ''; ?>>
+				<div class="scorebox-stat-card__icon dashicons dashicons-clock"></div>
 				<div class="scorebox-stat-card__content">
-					<span class="scorebox-stat-card__value"><?php echo esc_html( isset( $options['default_schema_type'] ) ? $options['default_schema_type'] : 'Product' ); ?></span>
-					<span class="scorebox-stat-card__label"><?php esc_html_e( 'Schema Type', 'scorebox' ); ?></span>
+					<span class="scorebox-stat-card__value"><?php echo esc_html( $latest_review_label ); ?></span>
+					<span class="scorebox-stat-card__label"><?php esc_html_e( 'Latest Review', 'scorebox' ); ?></span>
 				</div>
 			</div>
 		</div>

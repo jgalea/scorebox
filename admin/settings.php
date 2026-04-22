@@ -147,7 +147,7 @@ add_action( 'admin_init', 'scorebox_register_settings' );
 function scorebox_sanitize_settings( $input ) {
 	$output = array();
 
-	$valid_types = array( 'Product', 'SoftwareApplication', 'Thing' );
+	$valid_types = array_keys( scorebox_get_schema_types() );
 	$output['default_schema_type'] = 'Product';
 	if ( isset( $input['default_schema_type'] ) && in_array( $input['default_schema_type'], $valid_types, true ) ) {
 		$output['default_schema_type'] = $input['default_schema_type'];
@@ -220,9 +220,9 @@ function scorebox_field_schema_type() {
 	$current = isset( $options['default_schema_type'] ) ? $options['default_schema_type'] : 'Product';
 	?>
 	<select name="scorebox_settings[default_schema_type]" id="scorebox_default_schema_type">
-		<option value="Product" <?php selected( $current, 'Product' ); ?>><?php esc_html_e( 'Product', 'scorebox' ); ?></option>
-		<option value="SoftwareApplication" <?php selected( $current, 'SoftwareApplication' ); ?>><?php esc_html_e( 'SoftwareApplication', 'scorebox' ); ?></option>
-		<option value="Thing" <?php selected( $current, 'Thing' ); ?>><?php esc_html_e( 'Thing', 'scorebox' ); ?></option>
+		<?php foreach ( scorebox_get_schema_types() as $type_value => $type_label ) : ?>
+			<option value="<?php echo esc_attr( $type_value ); ?>" <?php selected( $current, $type_value ); ?>><?php echo esc_html( $type_label ); ?></option>
+		<?php endforeach; ?>
 	</select>
 	<p class="description"><?php esc_html_e( 'Default schema.org type for new reviews. Can be overridden per post.', 'scorebox' ); ?></p>
 	<?php
@@ -293,6 +293,91 @@ function scorebox_field_default_style() {
 	<p class="description"><?php esc_html_e( 'Default style for new reviews.', 'scorebox' ); ?></p>
 	<?php
 }
+
+// =========================================================================
+// Appearance preview — shared sample + AJAX refresh
+// =========================================================================
+
+/**
+ * Sample review used for the appearance preview.
+ */
+function scorebox_get_preview_review() {
+	$review = array(
+		'rating'       => 4.5,
+		'rating_type'  => 'star',
+		'heading'      => __( 'Our Verdict', 'scorebox' ),
+		'summary'      => __( 'An excellent product that delivers on its promises. Great value for the price.', 'scorebox' ),
+		'pros'         => array(
+			__( 'Easy to use', 'scorebox' ),
+			__( 'Great performance', 'scorebox' ),
+			__( 'Good value', 'scorebox' ),
+		),
+		'cons'         => array(
+			__( 'Limited options', 'scorebox' ),
+			__( 'Could be cheaper', 'scorebox' ),
+		),
+		'cta_text'     => __( 'Visit Website', 'scorebox' ),
+		'cta_url'      => '#',
+		'product_name' => __( 'Example Product', 'scorebox' ),
+		'style'        => '',
+		'position'     => '',
+		'schema_type'  => 'Product',
+		'price'        => '',
+		'currency'     => 'USD',
+		'author_name'  => '',
+		'use_criteria' => false,
+		'criteria'     => array(),
+	);
+
+	/**
+	 * Filter the sample review used on the Appearance preview. Pro add-ons
+	 * hook in to enable criteria, visitor ratings, etc. on the preview.
+	 *
+	 * @param array $review Sample review data.
+	 */
+	return apply_filters( 'scorebox_preview_review', $review );
+}
+
+/**
+ * AJAX: render the appearance preview with the provided style + colors,
+ * without persisting any settings.
+ */
+function scorebox_ajax_render_preview() {
+	check_ajax_referer( 'scorebox_preview', 'nonce' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+	}
+
+	$style        = isset( $_POST['style'] ) ? sanitize_key( wp_unslash( $_POST['style'] ) ) : 'default';
+	$accent_color = isset( $_POST['accent_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['accent_color'] ) ) : '';
+	$bg_color     = isset( $_POST['bg_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['bg_color'] ) ) : '';
+	$border_color = isset( $_POST['border_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['border_color'] ) ) : '';
+
+	$override = function( $value ) use ( $accent_color, $bg_color, $border_color ) {
+		$value = is_array( $value ) ? $value : array();
+		if ( $accent_color ) {
+			$value['accent_color'] = $accent_color;
+		}
+		if ( $bg_color ) {
+			$value['bg_color'] = $bg_color;
+		}
+		if ( $border_color ) {
+			$value['border_color'] = $border_color;
+		}
+		return $value;
+	};
+	add_filter( 'option_scorebox_settings', $override );
+
+	$review          = scorebox_get_preview_review();
+	$review['style'] = $style;
+
+	$html = scorebox_render_box( $review, 0 );
+
+	remove_filter( 'option_scorebox_settings', $override );
+
+	wp_send_json_success( array( 'html' => $html ) );
+}
+add_action( 'wp_ajax_scorebox_render_preview', 'scorebox_ajax_render_preview' );
 
 // =========================================================================
 // Post list table — Rating column
@@ -461,9 +546,17 @@ function scorebox_admin_enqueue( $hook_suffix ) {
 		wp_enqueue_script(
 			'scorebox-admin-settings',
 			SCOREBOX_URL . 'assets/js/admin-settings.js',
-			array( 'wp-color-picker' ),
+			array( 'wp-color-picker', 'jquery' ),
 			SCOREBOX_VERSION,
 			true
+		);
+		wp_localize_script(
+			'scorebox-admin-settings',
+			'scoreboxPreview',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'scorebox_preview' ),
+			)
 		);
 	}
 
